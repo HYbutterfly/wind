@@ -1,0 +1,33 @@
+root = "$ROOT/"
+luaservice = root.."service/?.lua;"
+	..root.."wind/service/?.lua;"	
+	..root.."skynet/test/?.lua;"
+	..root.."skynet/service/?.lua;"
+lualoader = root .. "skynet/lualib/loader.lua"
+lua_path = root.."lualib/?.lua;"..root.."skynet/lualib/?.lua;"..root.."skynet/lualib/?/init.lua;"
+lua_cpath = root .. "skynet/luaclib/?.so;"..root.."/luaclib/?.so;"
+snax = root.."?.lua;"
+	..root.."service/?.lua;"
+	..root.."snax/?.lua;"
+	..root.."skynet/test/?.lua;"
+
+lua_path = 
+root.."?.lua;"..
+root.."?/init.lua;"..
+lua_path
+
+cpath = root.."skynet/cservice/?.so"
+
+
+preload = root .. "preload/init.lua"
+thread = 4
+harbor = 0
+start = "main"	-- main script
+bootstrap = "snlua bootstrap"	-- The service for bootstrap
+
+--logservice = "snlua"
+--logger = "logger"
+
+if $DAEMON then
+	daemon = "./skynet.pid"
+end
