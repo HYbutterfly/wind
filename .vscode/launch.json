@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "args": [],
+            "cwd": "${workspaceFolder:wind}",
+            "name": "Debug wind",
+            "program": "${workspaceFolder:wind}/.build/debug/wind",
+            "preLaunchTask": "swift: Build Debug wind"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "args": [],
+            "cwd": "${workspaceFolder:wind}",
+            "name": "Release wind",
+            "program": "${workspaceFolder:wind}/.build/release/wind",
+            "preLaunchTask": "swift: Build Release wind"
+        }
+    ]
+}
