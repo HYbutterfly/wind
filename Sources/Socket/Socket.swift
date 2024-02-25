@@ -13,7 +13,7 @@ public struct Socket {
         }
     }
     
-    func listen(port: UInt16) -> Self {
+    func listen(port: UInt16) {
         var serverAddress = sockaddr_in()
         serverAddress.sin_family = sa_family_t(AF_INET)
         serverAddress.sin_addr.s_addr = INADDR_ANY
@@ -31,7 +31,6 @@ public struct Socket {
         guard result != -1 else {
             fatalError("Error listen socket: \(errno)")
         }
-        return self
     }
     
     func accept() -> Int32 {
