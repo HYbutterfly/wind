@@ -58,14 +58,18 @@ public struct SocketThread {
                 case .Listener(let listener):
                     let client = listener.socket.accept()
                     let ident = UInt(client)
-                    listener.on_connect(client: client)
-                    self.ident_type[ident] = .Client(listener)
+                    DispatchQueue.main.async {
+                        Task { await listener.on_connect(client: client) }
+                    }
+                    ident_type[ident] = .Client(listener)
                     add_event(fd: ident, filter: Int16(EVFILT_READ))
 
                 case .Client(let listener):
                     let client = Int32(event.ident)
                     let message = listener.socket.read(clientSocket: client, count: 128)
-                    listener.on_message(client: client, message: message)
+                    DispatchQueue.main.async {
+                        Task { await listener.on_message(client: client, message: message) }
+                    }
 
                 default:
                     print()

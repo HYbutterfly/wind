@@ -13,15 +13,16 @@ class MySocketListener: SocketListener {
         self.game = game
     }
 
-    func on_connect(client: Int32) {
+    func on_connect(client: Int32) async {
         print("connect", client)
     }
 
-    func on_message(client: Int32, message: [UInt8]) {
+    func on_message(client: Int32, message: [UInt8]) async {
         print("message", client, String(bytes: message, encoding: .utf8)!)
+        socket.write(clientSocket: client, buffer: message)
     }
 
-    func on_close(client: Int32) {
+    func on_close(client: Int32) async {
         print("close", client)
     }
 }
