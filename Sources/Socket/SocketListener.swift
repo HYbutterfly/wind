@@ -1,6 +1,5 @@
 import Foundation
 
-
 protocol SocketListener {
     var port: UInt16 { get set }
     var socket: Socket { get set }

@@ -1,9 +1,9 @@
-import Foundation
 import Darwin
+import Foundation
 
 enum IdentType {
-   case Listener(SocketListener)
-   case Client(SocketListener)
+    case Listener(SocketListener)
+    case Client(SocketListener)
 }
 
 public struct SocketThread {
@@ -52,7 +52,7 @@ public struct SocketThread {
                 fatalError("Failed to wait for events")
             }
             for i in 1...eventCount {
-                let event = changeList[Int(i)-1]
+                let event = changeList[Int(i) - 1]
                 switch ident_type[event.ident] {
 
                 case .Listener(let listener):
@@ -69,7 +69,7 @@ public struct SocketThread {
                     let (size, message) = listener.socket.read(client, count: 128)
                     if size < 0 {
                         Utils.print_errno(label: "Socket.read")
-                    } else if (size == 0) {
+                    } else if size == 0 {
                         listener.socket.close(client)
                         DispatchQueue.main.async {
                             Task { await listener.on_close(client: client) }

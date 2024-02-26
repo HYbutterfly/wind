@@ -1,18 +1,18 @@
-import Foundation
 import Darwin
+import Foundation
 
 let BACKLOG = Int32(32)
 
 public struct Socket {
     let handle: Int32
-    
+
     init() {
         self.handle = Darwin.socket(AF_INET, SOCK_STREAM, 0)
         guard self.handle != -1 else {
             fatalError("Error creating socket: \(errno)")
         }
     }
-    
+
     func listen(port: UInt16) {
         var serverAddress = sockaddr_in()
         serverAddress.sin_family = sa_family_t(AF_INET)
@@ -32,7 +32,7 @@ public struct Socket {
             fatalError("Error listen socket: \(errno)")
         }
     }
-    
+
     func accept() -> Int32 {
         var clientAddress = sockaddr()
         var clientAddressLength = socklen_t(MemoryLayout<sockaddr>.size)
@@ -42,13 +42,13 @@ public struct Socket {
         }
         return clientSocket
     }
-    
+
     func read(_ clientSocket: Int32, count: Int) -> (Int, [UInt8]) {
         var buffer = [UInt8](repeating: 0, count: count)
         let bytesRead = Darwin.read(clientSocket, &buffer, count)
         return (bytesRead, buffer)
     }
-    
+
     func write(_ clientSocket: Int32, buffer: [UInt8]) {
         let bytesWritten = Darwin.write(clientSocket, buffer, buffer.count)
         if bytesWritten < 0 {
