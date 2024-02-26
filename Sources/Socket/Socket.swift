@@ -43,19 +43,20 @@ public struct Socket {
         return clientSocket
     }
     
-    func read(clientSocket: Int32, count: Int) -> [UInt8] {
+    func read(_ clientSocket: Int32, count: Int) -> (Int, [UInt8]) {
         var buffer = [UInt8](repeating: 0, count: count)
         let bytesRead = Darwin.read(clientSocket, &buffer, count)
-        guard bytesRead >= 0 else {
-            fatalError("Error reading from socket: \(errno)")
-        }
-        return buffer
+        return (bytesRead, buffer)
     }
     
-    func write(clientSocket: Int32, buffer: [UInt8]) {
+    func write(_ clientSocket: Int32, buffer: [UInt8]) {
         let bytesWritten = Darwin.write(clientSocket, buffer, buffer.count)
-        guard bytesWritten >= 0 else {
-            fatalError("Error writing to socket: \(errno)")
+        if bytesWritten < 0 {
+            Utils.print_errno(label: "Socket.write")
         }
+    }
+
+    func close(_ clientSocket: Int32) {
+        Darwin.close(clientSocket)
     }
 }

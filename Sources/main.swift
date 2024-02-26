@@ -19,7 +19,7 @@ class MySocketListener: SocketListener {
 
     func on_message(client: Int32, message: [UInt8]) async {
         print("message", client, String(bytes: message, encoding: .utf8)!)
-        socket.write(clientSocket: client, buffer: message)
+        socket.write(client, buffer: message)
     }
 
     func on_close(client: Int32) async {

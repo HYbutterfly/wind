@@ -66,11 +66,19 @@ public struct SocketThread {
 
                 case .Client(let listener):
                     let client = Int32(event.ident)
-                    let message = listener.socket.read(clientSocket: client, count: 128)
-                    DispatchQueue.main.async {
-                        Task { await listener.on_message(client: client, message: message) }
+                    let (size, message) = listener.socket.read(client, count: 128)
+                    if size < 0 {
+                        Utils.print_errno(label: "Socket.read")
+                    } else if (size == 0) {
+                        listener.socket.close(client)
+                        DispatchQueue.main.async {
+                            Task { await listener.on_close(client: client) }
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            Task { await listener.on_message(client: client, message: message) }
+                        }
                     }
-
                 default:
                     print()
                 }
