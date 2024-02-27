@@ -22,9 +22,10 @@ public struct SocketThread {
             print("Listen on \(listener.port)")
             ident_type[UInt(listener.socket.handle)] = .Listener(listener)
         }
+        mainloop()
     }
 
-    func add_event(fd: UInt, filter: Int16) {
+    private func add_event(fd: UInt, filter: Int16) {
         var event = kevent(
             ident: fd,
             filter: filter,
@@ -39,7 +40,7 @@ public struct SocketThread {
         }
     }
 
-    mutating func run() {
+    private mutating func mainloop() {
         for listener in listeners {
             add_event(fd: UInt(listener.socket.handle), filter: Int16(EVFILT_READ))
         }
