@@ -76,7 +76,7 @@ public struct Socket {
         }
     }
 
-    func close(_ clientSocket: Int32) {
-        Darwin.close(clientSocket)
+    static func close(_ fd: Int32) {
+        Darwin.close(fd)
     }
 }

@@ -69,7 +69,7 @@ public struct SocketThread {
                     if size < 0 {
                         Wind.util.print_errno(label: "Socket.read")
                     } else if size == 0 {
-                        listener.socket.close(client)
+                        Socket.close(client)
                         DispatchQueue.main.async {
                             Task { await listener.on_close(client: client) }
                         }
