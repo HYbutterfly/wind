@@ -19,7 +19,7 @@ class MySocketListener: SocketListener {
 
     func on_message(client: Int32, message: [UInt8]) async {
         print("message", client, String(bytes: message, encoding: .utf8)!)
-        socket.write(client, buffer: message)
+        Socket.write(client, buffer: message)
     }
 
     func on_close(client: Int32) async {
@@ -30,7 +30,7 @@ class MySocketListener: SocketListener {
 let game = Game()
 let listener = MySocketListener(port: 8080, game: game)
 
-let socket = DispatchQueue(label: "socket", attributes: .init(rawValue: 0))
+let socket = DispatchQueue(label: "socket")
 
 socket.async {
     var thread = SocketThread()

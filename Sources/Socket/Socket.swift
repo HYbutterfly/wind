@@ -4,7 +4,7 @@ import Foundation
 let BACKLOG = Int32(32)
 
 public struct Socket {
-    static var reuse: Int = 1;
+    static var reuse: Int = 1
     let handle: Int32
 
     init() {
@@ -15,12 +15,12 @@ public struct Socket {
     }
 
     func listen(port: UInt16) {
-        
+
         var addr = sockaddr_in()
         addr.sin_family = sa_family_t(AF_INET)
         addr.sin_addr.s_addr = INADDR_ANY
         addr.sin_port = in_port_t(port).bigEndian
-        
+
         if setsockopt(self.handle, SOL_SOCKET, SO_REUSEADDR, &Socket.reuse, socklen_t(MemoryLayout<Int>.size)) == -1 {
             fatalError("Error setsockopt: \(errno)")
         }
@@ -38,13 +38,13 @@ public struct Socket {
             fatalError("Error listen socket: \(errno)")
         }
     }
-    
+
     func connect(host: String, port: UInt16) -> Int32? {
         var addr = sockaddr_in()
         addr.sin_family = sa_family_t(AF_INET)
         addr.sin_port = in_port_t(port).bigEndian
         addr.sin_addr.s_addr = inet_addr(host)
-        
+
         let result = withUnsafePointer(to: &addr) {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
                 Darwin.connect(self.handle, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
