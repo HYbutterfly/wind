@@ -67,7 +67,7 @@ public struct SocketThread {
                     let client = Int32(event.ident)
                     let (size, message) = Socket.read(client, count: 128)
                     if size < 0 {
-                        Utils.print_errno(label: "Socket.read")
+                        Wind.util.print_errno(label: "Socket.read")
                     } else if size == 0 {
                         listener.socket.close(client)
                         DispatchQueue.main.async {

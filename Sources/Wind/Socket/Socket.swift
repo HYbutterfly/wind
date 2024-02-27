@@ -72,7 +72,7 @@ public struct Socket {
     static func write(_ fd: Int32, buffer: [UInt8]) {
         let bytesWritten = Darwin.write(fd, buffer, buffer.count)
         if bytesWritten < 0 {
-            Utils.print_errno(label: "Socket.write")
+            Wind.util.print_errno(label: "Socket.write")
         }
     }
 
