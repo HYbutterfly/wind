@@ -4,7 +4,6 @@ import Foundation
 let BACKLOG = Int32(32)
 
 public struct Socket {
-    static var reuse: Int = 1
     let handle: Int32
 
     init() {
@@ -15,16 +14,14 @@ public struct Socket {
     }
 
     func listen(port: UInt16) {
-
         var addr = sockaddr_in()
         addr.sin_family = sa_family_t(AF_INET)
         addr.sin_addr.s_addr = INADDR_ANY
         addr.sin_port = in_port_t(port).bigEndian
-
-        if setsockopt(self.handle, SOL_SOCKET, SO_REUSEADDR, &Socket.reuse, socklen_t(MemoryLayout<Int>.size)) == -1 {
+        var reuse = 1
+        if setsockopt(self.handle, SOL_SOCKET, SO_REUSEADDR, &reuse, socklen_t(MemoryLayout<Int>.size)) == -1 {
             fatalError("Error setsockopt: \(errno)")
         }
-
         var result = withUnsafePointer(to: &addr) {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
                 bind(self.handle, $0, socklen_t(MemoryLayout<sockaddr_in>.size))

@@ -30,12 +30,4 @@ class MySocketListener: SocketListener {
 let game = Game()
 let listener = MySocketListener(port: 8080, game: game)
 
-let socket = DispatchQueue(label: "socket")
-
-socket.async {
-    var thread = SocketThread()
-    thread.add_listener(listener: listener)
-    thread.run()
-}
-
-RunLoop.current.run()
+Wind.start(listeners: [listener])

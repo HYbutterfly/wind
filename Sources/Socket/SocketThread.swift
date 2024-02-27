@@ -8,21 +8,20 @@ enum IdentType {
 
 public struct SocketThread {
     let queue: Int32
-    var listeners: [SocketListener] = []
+    var listeners: [SocketListener]
     var ident_type: [UInt: IdentType] = [:]
 
-    init() {
+    init(listeners: [SocketListener]) {
+        self.listeners = listeners
         queue = kqueue()
         if queue == -1 {
             fatalError("Failed to create kqueue")
         }
-    }
-
-    mutating func add_listener(listener: SocketListener) {
-        listener.socket.listen(port: listener.port)
-        print("Listen on \(listener.port)")
-        listeners.append(listener)
-        ident_type[UInt(listener.socket.handle)] = .Listener(listener)
+        for listener in listeners {
+            listener.socket.listen(port: listener.port)
+            print("Listen on \(listener.port)")
+            ident_type[UInt(listener.socket.handle)] = .Listener(listener)
+        }
     }
 
     func add_event(fd: UInt, filter: Int16) {
