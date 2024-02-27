@@ -16,6 +16,6 @@ public struct Utils {
     }
 
     static func print_errno(label: String) {
-        print(String(format: "\(label) error: errno %d, message: %@", errno, String(cString: strerror(errno))))
+        print(String(format: "\(label) errno: %d, message: %@", errno, String(cString: strerror(errno))))
     }
 }

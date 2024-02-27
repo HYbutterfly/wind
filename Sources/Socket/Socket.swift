@@ -4,6 +4,7 @@ import Foundation
 let BACKLOG = Int32(32)
 
 public struct Socket {
+    static var reuse: Int = 1;
     let handle: Int32
 
     init() {
@@ -14,12 +15,17 @@ public struct Socket {
     }
 
     func listen(port: UInt16) {
-        var serverAddress = sockaddr_in()
-        serverAddress.sin_family = sa_family_t(AF_INET)
-        serverAddress.sin_addr.s_addr = INADDR_ANY
-        serverAddress.sin_port = in_port_t(port).bigEndian
+        
+        var addr = sockaddr_in()
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_addr.s_addr = INADDR_ANY
+        addr.sin_port = in_port_t(port).bigEndian
+        
+        if setsockopt(self.handle, SOL_SOCKET, SO_REUSEADDR, &Socket.reuse, socklen_t(MemoryLayout<Int>.size)) == -1 {
+            fatalError("Error setsockopt: \(errno)")
+        }
 
-        var result = withUnsafePointer(to: &serverAddress) {
+        var result = withUnsafePointer(to: &addr) {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
                 bind(self.handle, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
             }
@@ -32,6 +38,23 @@ public struct Socket {
             fatalError("Error listen socket: \(errno)")
         }
     }
+    
+    func connect(host: String, port: UInt16) -> Int32? {
+        var addr = sockaddr_in()
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = in_port_t(port).bigEndian
+        addr.sin_addr.s_addr = inet_addr(host)
+        
+        let result = withUnsafePointer(to: &addr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.connect(self.handle, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        if result == -1 {
+            return nil
+        }
+        return self.handle
+    }
 
     func accept() -> Int32 {
         var clientAddress = sockaddr()
@@ -43,14 +66,14 @@ public struct Socket {
         return clientSocket
     }
 
-    func read(_ clientSocket: Int32, count: Int) -> (Int, [UInt8]) {
+    static func read(_ fd: Int32, count: Int) -> (Int, [UInt8]) {
         var buffer = [UInt8](repeating: 0, count: count)
-        let bytesRead = Darwin.read(clientSocket, &buffer, count)
+        let bytesRead = Darwin.read(fd, &buffer, count)
         return (bytesRead, buffer)
     }
 
-    func write(_ clientSocket: Int32, buffer: [UInt8]) {
-        let bytesWritten = Darwin.write(clientSocket, buffer, buffer.count)
+    static func write(_ fd: Int32, buffer: [UInt8]) {
+        let bytesWritten = Darwin.write(fd, buffer, buffer.count)
         if bytesWritten < 0 {
             Utils.print_errno(label: "Socket.write")
         }

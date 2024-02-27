@@ -66,7 +66,7 @@ public struct SocketThread {
 
                 case .Client(let listener):
                     let client = Int32(event.ident)
-                    let (size, message) = listener.socket.read(client, count: 128)
+                    let (size, message) = Socket.read(client, count: 128)
                     if size < 0 {
                         Utils.print_errno(label: "Socket.read")
                     } else if size == 0 {
