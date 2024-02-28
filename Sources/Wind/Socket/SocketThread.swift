@@ -10,6 +10,7 @@ public struct SocketThread {
     let queue: Int32
     var listeners: [SocketListener]
     var ident_type: [UInt: IdentType] = [:]
+    var client_last: [Int32: [UInt8]] = [:]
 
     init(listeners: [SocketListener]) {
         self.listeners = listeners
@@ -66,21 +67,66 @@ public struct SocketThread {
 
                 case .Client(let listener):
                     let client = Int32(event.ident)
-                    let (size, message) = Socket.read(client, count: 128)
+                    let (size, message) = listener.socket.read(client, count: 128)
                     if size < 0 {
-                        Wind.util.print_errno(label: "Socket.read")
+                        Util.print_errno(label: "Socket.read")
                     } else if size == 0 {
-                        Socket.close(client)
+                        client_cleanup(listener: listener, client: client)
                         DispatchQueue.main.async {
                             Task { await listener.on_close(client: client) }
                         }
                     } else {
-                        DispatchQueue.main.async {
-                            Task { await listener.on_message(client: client, message: message) }
+                        if listener.socket.headfmt == .none {
+                            DispatchQueue.main.async {
+                                Task { await listener.on_message(client: client, message: message) }
+                            }
+                        } else {
+                            if let last = client_last[client] {
+                                client_last[client] = last + message
+                            } else {
+                                client_last[client] = message
+                            }
+                            try_dispatch_client_packet(client, headfmt: listener.socket.headfmt)
                         }
                     }
                 default:
                     print()
+                }
+            }
+        }
+    }
+
+    mutating func client_cleanup(listener: SocketListener, client: Int32) {
+        listener.socket.close(client)
+        client_last[client] = nil
+    }
+
+    mutating func try_dispatch_client_packet(_ client: Int32, headfmt: SocketPacketHeadFormat) {
+        if let last = client_last[client] {
+            var index = 0
+            while true {
+                if let length = Util.socket_packet_head_decode(fmt: headfmt, data: last, from: index) {
+                    if index + length <= last.count {
+                        index += headfmt.size()
+                        let packet = last[index...(index + length - 1)]
+                        let message = Array(packet)
+                        DispatchQueue.main.async {
+                            Task { await listener.on_message(client: client, message: message) }
+                        }
+                        index += length
+                    } else {
+                        break
+                    }
+                } else {
+                    break
+                }
+            }
+            if index != 0 {
+                if index == last.count {
+                    client_last[client] = nil
+                } else {
+                    let remaining = last[index..<last.count]
+                    client_last[client] = Array(remaining)
                 }
             }
         }

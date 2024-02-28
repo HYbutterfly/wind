@@ -3,10 +3,35 @@ import Foundation
 
 let BACKLOG = Int32(32)
 
+public enum SocketPacketHeadFormat {
+    case none
+    case bigEndian2byte
+    case bigEndian4byte
+    case littleEndian2byte
+    case littleEndian4byte
+
+    func size() -> Int {
+        switch self {
+        case .none:
+            return 0
+        case .bigEndian2byte:
+            return 2
+        case .littleEndian2byte:
+            return 2
+        case .bigEndian4byte:
+            return 4
+        case .littleEndian4byte:
+            return 4
+        }
+    }
+}
+
 public struct Socket {
     let handle: Int32
+    let headfmt: SocketPacketHeadFormat
 
-    init() {
+    init(headfmt: SocketPacketHeadFormat) {
+        self.headfmt = headfmt
         self.handle = Darwin.socket(AF_INET, SOCK_STREAM, 0)
         guard self.handle != -1 else {
             fatalError("Error creating socket: \(errno)")
@@ -63,20 +88,28 @@ public struct Socket {
         return clientSocket
     }
 
-    static func read(_ fd: Int32, count: Int) -> (Int, [UInt8]) {
+    func read(_ fd: Int32, count: Int) -> (Int, [UInt8]) {
         var buffer = [UInt8](repeating: 0, count: count)
         let bytesRead = Darwin.read(fd, &buffer, count)
+        if bytesRead > 0 {
+            let data = buffer[0..<bytesRead]
+            buffer = Array(data)
+        }
         return (bytesRead, buffer)
     }
 
-    static func write(_ fd: Int32, buffer: [UInt8]) {
-        let bytesWritten = Darwin.write(fd, buffer, buffer.count)
+    func write(_ fd: Int32, buffer: [UInt8]) {
+        var packet = buffer
+        if let head = Util.socket_packet_head_encode(fmt: headfmt, length: buffer.count) {
+            packet = head + packet
+        }
+        let bytesWritten = Darwin.write(fd, packet, packet.count)
         if bytesWritten < 0 {
-            Wind.util.print_errno(label: "Socket.write")
+            Util.print_errno(label: "Socket.write")
         }
     }
 
-    static func close(_ fd: Int32) {
+    func close(_ fd: Int32) {
         Darwin.close(fd)
     }
 }

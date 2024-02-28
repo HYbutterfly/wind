@@ -4,7 +4,7 @@
 import Foundation
 
 class MySocketListener: SocketListener {
-    var socket = Socket()
+    var socket = Socket(headfmt: .bigEndian2byte)
     var port: UInt16
     var game: Game
 
@@ -19,7 +19,7 @@ class MySocketListener: SocketListener {
 
     func on_message(client: Int32, message: [UInt8]) async {
         print("message", client, String(bytes: message, encoding: .utf8)!)
-        Socket.write(client, buffer: message)
+        socket.write(client, buffer: message)
     }
 
     func on_close(client: Int32) async {
